@@ -1,5 +1,5 @@
 # hnn-textanalysis
-Scraping content from HNN and conducting ML modelling on each article 
+Scraping content from HNN and conducting ML modelling on each article
 
 # Sneaker Article Performance Analytics
 
@@ -7,9 +7,9 @@ This project analyzes the performance of sneaker articles written by a single au
 
 The pipeline:
 
-1. Crawls and extracts only your roommate’s articles from the company’s CMS using the **Firecrawl API**.  
-2. Structures the content and engagement metrics into a clean dataset for analysis.  
-3. Trains and evaluates ML models to understand what drives article performance.  
+1. Crawls and extracts only your roommate's articles from the company's CMS using the **Firecrawl API**.
+2. Structures the content and engagement metrics into a clean dataset for analysis.
+3. Trains and evaluates ML models to understand what drives article performance.
 4. Exposes results through a simple dashboard / web app.
 
 ---
@@ -63,15 +63,17 @@ Plus whatever is scraped from the article pages:
 
 ## Tech Stack (Planned)
 
-- **Language:** Python  
-- **Scraping:** Firecrawl API  
-- **Data / Analysis:** pandas, NumPy, scikit-learn (and/or similar)  
-- **Modeling:** Regression / classification models; feature importance analysis  
+- **Language:** Python
+- **Scraping:** Firecrawl API
+- **Data / Analysis:** pandas, NumPy, scikit-learn (and/or similar)
+- **Modeling:** Regression / classification models; feature importance analysis
 - **Dashboard / WebApp:** (e.g., Streamlit / FastAPI + frontend – TBD)
 
 ---
 
 ## Project Structure (Proposed)
+
+```
 .
 ├── data/
 │   ├── raw/          # Raw scraped data & analytics exports
@@ -91,3 +93,4 @@ Plus whatever is scraped from the article pages:
 ├── .env.example
 ├── requirements.txt
 └── README.md
+```
