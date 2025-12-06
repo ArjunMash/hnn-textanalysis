@@ -7,6 +7,7 @@ from pydantic import BaseModel
 import pandas as pd
 import asyncio
 from datetime import datetime, timedelta
+import json
 
 from prompts.prompt1 import SYSTEM_PROMPT
 
@@ -38,7 +39,6 @@ CHECKPOINT_INTERVAL = 50
 
 class RateLimiter:
     """Tracks rate limits from OpenAI response headers and calculates adaptive delays"""
-
     def __init__(self):
         self.remaining_requests = float('inf')
         self.limit_requests = float('inf')
@@ -67,8 +67,20 @@ class RateLimiter:
             return 0.1  # Normal pacing
 
 
-def get_embeddings(body):
-    """Return embeddings for provided text"""
+
+async def get_embeddings_async(async_client, body):
+    """Generate embeddings using OpenAI text-embedding-3-small"""
+    # Clean the text (remove newlines as recommended by OpenAI)
+    text = body.replace("\n", " ")
+
+    # Generate embedding
+    response = await async_client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+
+    # Return the vector embedding
+    return response.data[0].embedding
 
 
 def get_body_struct(body)-> tuple:
@@ -104,7 +116,7 @@ def get_body_struct(body)-> tuple:
     return avg_sentence_length, num_sentences, num_paragraphs, total_words
 
 def gpt_process(body)-> tuple:
-    """Uses OpenAI API and structured outputs to return the article type, primary sneaker brand and sneaker price"""
+    """Uses OpenAI API and structured outputs to return the article type, primary sneaker brand and sneaker price. Original sync function"""
     response = client.responses.parse(
         model="gpt-5-mini-2025-08-07",
         input=[
@@ -180,7 +192,8 @@ def load_and_resume(input_file):
         'avg_sentence_length': None,
         'num_sentences': None,
         'num_paragraphs': None,
-        'num_words': None
+        'num_words': None,
+        'text_embedding': None
     }
 
     for col, default in new_columns.items():
@@ -197,7 +210,7 @@ def load_and_resume(input_file):
 
 async def process_single_row(async_client, df, row_index, semaphore, rate_limiter):
     """Process one row with semaphore control"""
-    async with semaphore: # Basically like a global lock to prevent multiple threads from touching the same block
+    async with semaphore: # Note to self: basically like a global lock to prevent multiple threads from touching the same block
         try:
             article_text = df.loc[row_index, 'text']
 
@@ -220,6 +233,9 @@ async def process_single_row(async_client, df, row_index, semaphore, rate_limite
                 async_client, article_text, rate_limiter
             )
 
+            # Generate embeddings (async, fast)
+            embedding = await get_embeddings_async(async_client, article_text)
+
             # Update DataFrame
             df.loc[row_index, 'avg_sentence_length'] = sen_len
             df.loc[row_index, 'num_sentences'] = num_s
@@ -228,6 +244,7 @@ async def process_single_row(async_client, df, row_index, semaphore, rate_limite
             df.loc[row_index, 'sneaker_price'] = sneaker_price
             df.loc[row_index, 'article_type'] = article_type
             df.loc[row_index, 'sneaker_brand'] = sneaker_brand
+            df.loc[row_index, 'text_embedding'] = json.dumps(embedding)
 
             return {'success': True, 'row_index': row_index}
 
@@ -252,7 +269,7 @@ async def process_batch_async(
     checkpoint_interval: int = 50,
     max_rows: int = None
 ):
-    """Main orchestrator for parallel processing"""
+    """ Orchestrator for the parallel processing of feature enhancement"""
 
     # Load data and find pending rows
     df, pending_indices = load_and_resume(input_file)

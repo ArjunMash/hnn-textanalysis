@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Claude code generated script to check OpenAI API rate limits. So we don't get limited during our feature enrichment
+Note This is a script I used Claude Code to quickly generate this script so I could check OpenAI's API rate limits. I wanted to verify the RPM/TPM boundaries before I built the async feature enrichment functions
 """
 
 from openai import OpenAI

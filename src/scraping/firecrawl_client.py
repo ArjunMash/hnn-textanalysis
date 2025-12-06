@@ -60,6 +60,8 @@ def retry_failed_urls(csv_file:str):
     """
     Retry scraping for URLs that failed (have None/empty text column).
     Reads and writes to the same file.
+
+    I built this function to be optionally added into the script in case of a high amount of failed URLs being scraped. 
     """
     df = pd.read_csv(csv_file)
 
@@ -110,7 +112,7 @@ def retry_failed_urls(csv_file:str):
 
 def enrich_csv(read_file:str, write_file:str):
     """
-    Iterate across csv enriching with text For each csv first check if it's already been enriched. Add colun with request key statuus. So if != 200 then enrich. And print list when error occurs
+    Iterate across csv enriching with text For each csv first check if it's already been enriched. Add column with request key statuus. So if != 200 then enrich. And print list when error occurs
 
     Write to given write file
     """
