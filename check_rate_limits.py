@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Note This is a script I used Claude Code to quickly generate this script so I could check OpenAI's API rate limits. I wanted to verify the RPM/TPM boundaries before I built the async feature enrichment functions
+Note This is a script I used Claude Code to quickly generate, so I could check my OpenAI rate limits. I wanted to verify the RPM/TPM boundaries before I built the async feature functions
 """
 
 from openai import OpenAI

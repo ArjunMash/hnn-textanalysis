@@ -94,3 +94,17 @@ Plus whatever is scraped from the article pages:
 ├── requirements.txt
 └── README.md
 ```
+## The Data:
+
+## How To Use These Scripts:
+If you want to test the full data processing pipeline I reccomend you delete all CSVs other than: [this CSV](data/all_articles_first_week.csv). 
+
+## Code Explanation:
+
+**Note: The EDA notebook is 'read only', none of the changes are saved to the HNHH_Processed.CSV. Instead I decided to make these changes in the model scripts instead. This allows the Model scripts to be run without having to use the Jupyter Notebook.** 
+
+### API Requirements: 
+
+Due to the presence of outliers with a large # of pageviews I decided to use a log scale in the response.
+
+## Considering why this might not have worked?

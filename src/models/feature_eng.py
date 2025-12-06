@@ -14,7 +14,7 @@ from prompts.prompt1 import SYSTEM_PROMPT
 # Load environment variables from .env file
 load_dotenv()
 
-# Define GPT Structure:
+# Define Structured Output for OpenAI's return:
 class SneakerArticleInfo(BaseModel):
     """
     Parsed features from a sneaker-related article.
@@ -33,10 +33,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Checkpoint interval for saving progress
+# A checkpoint for number of rows to save progress at
 CHECKPOINT_INTERVAL = 50
 
-
+# Used Claude to help implement this function to prevent exceeding OpeanAI RPM/TPM limits
 class RateLimiter:
     """Tracks rate limits from OpenAI response headers and calculates adaptive delays"""
     def __init__(self):

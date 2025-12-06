@@ -23,7 +23,7 @@ def get_html(url:str)->str:
 
     payload = {
     "url": url,
-    "onlyMainContent": True, # eliminates elements like navbar
+    "onlyMainContent": True, # Firecrawl handles some of the HTML trimming. Eliminates elements like navbar
     "maxAge": 172800000,
     "parsers": [
         "pdf"
@@ -112,7 +112,7 @@ def retry_failed_urls(csv_file:str):
 
 def enrich_csv(read_file:str, write_file:str):
     """
-    Iterate across csv enriching with text For each csv first check if it's already been enriched. Add column with request key statuus. So if != 200 then enrich. And print list when error occurs
+    Iterate across csv enriching with text For each csv first check if it's already been enriched. Add column with request key status. So if != 200 then enrich. And print list when error occurs
 
     Write to given write file
     """
@@ -164,7 +164,7 @@ def enrich_csv(read_file:str, write_file:str):
 
             processed_count += 1
 
-            # Still wait even on error to avoid hammering API
+            # Still wait even on error to avoid overloading API
             if processed_count < len(df):
                 time.sleep(RATE_LIMIT_DELAY)
 
@@ -177,6 +177,7 @@ def extract_article_text(html: str) -> tuple:
     soup = BeautifulSoup(html, "html.parser")
 
     # Dek / meta description (the bold line atop each article and SEO preview)
+    # This was specifically requested by my roommate
     meta_desc = None
     dek_span = soup.select_one(
         "span.font-lora.text-dark-grey.font-bold, "
@@ -189,10 +190,10 @@ def extract_article_text(html: str) -> tuple:
             meta_desc = (dek_text)
 
     parts = []
-    # 2. Main article body
+    # Main article body
     article = soup.select_one("article")
     if not article:
-        # fallback: this site is pretty consistent, so if no article is found, just bail early
+        # fallback: this site is pretty consistent, if no article is found, return early
         return "\n\n".join(parts), meta_desc
 
     # gather all paragraph texts inside the article
