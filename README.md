@@ -7,7 +7,7 @@ This project analyzes the performance of sneaker articles written by a single au
 
 The pipeline:
 
-1. Crawls and extracts only your roommate's articles from the company's CMS using the **Firecrawl API**.
+1. Crawls and extracts only my roommate's articles from the company's webpage using the **Firecrawl API**.
 2. Structures the content and engagement metrics into a clean dataset for analysis.
 3. Trains and evaluates ML models to understand what drives article performance.
 4. Exposes results through a simple dashboard / web app.
