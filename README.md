@@ -3,7 +3,7 @@ This repo is dedicated to a series of scripts meant to enrich a CSV of analytics
 
 It's important to note this project was a fantastic oppurtunity to practice working with a non-technical partner to help transform their business requirements to technical needs.
 
-**tldr:** Skip to [here](##Demo-/-Code-Explanation:) to see me demo
+**tldr:** Skip to [here](#demo--code-explanation) to see me demo
 
 #### The pipeline:
 1. Crawl and extract my roommate's articles (Ben Atkinson) from the company's webpage using the **Firecrawl API** and URLs in the provided CSV
