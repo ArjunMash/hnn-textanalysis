@@ -1,7 +1,5 @@
 import os
 from dotenv import load_dotenv
-from firecrawl import Firecrawl
-from pydantic import BaseModel
 from bs4 import BeautifulSoup
 import requests
 import json
@@ -23,7 +21,7 @@ def get_html(url:str)->str:
 
     payload = {
     "url": url,
-    "onlyMainContent": True, # Firecrawl handles some of the HTML trimming. Eliminates elements like navbar
+    "onlyMainContent": True, # Firecrawl handles some of the HTML cleaning. Eliminates elements like navbar
     "maxAge": 172800000,
     "parsers": [
         "pdf"
@@ -79,7 +77,7 @@ def retry_failed_urls(csv_file:str):
     failed_indices = df[failed_mask].index.tolist()
 
     if len(failed_indices) == 0:
-        print("No failed URLs to retry!")
+        print("No failed URLs to retry")
         return
 
     print(f"Found {len(failed_indices)} failed URLs to retry")
@@ -192,7 +190,7 @@ def extract_article_text(html: str) -> tuple:
     # Main article body
     article = soup.select_one("article")
     if not article:
-        # fallback: this site is pretty consistent, if no article is found, return early
+        # if no article is found, return early
         return "\n\n".join(parts), meta_desc
 
     # gather all paragraph texts inside the article
@@ -212,7 +210,7 @@ def extract_article_text(html: str) -> tuple:
     return "\n\n".join(parts), meta_desc
 
 def main():
-    # Start off with one URL and get extraction workflow down
+    # Start off with one URL to test extraction workflow
     #url =  "https://www.hotnewhiphop.com/952232-air-jordan-11-285-sneaker-news-2"
     # article = get_html(url)
     # article_text = article

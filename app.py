@@ -41,11 +41,6 @@ if model is None:
     st.error("Failed to load model. Please ensure the model file exists at src/models/pageviews_model.pt")
     st.stop()
 
-if category_info is None:
-    st.error("Model was trained with an older version. Please retrain the model to use this app.")
-    st.stop()
-
-
 def prepare_input_features(text, article_type, sneaker_brand, sneaker_price, publish_date, category_info):
     """Prepare input features matching training format"""
 

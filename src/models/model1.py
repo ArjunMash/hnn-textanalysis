@@ -6,28 +6,29 @@ import numpy as np
 # Sklearn fucntions
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from datetime import datetime
 import ast 
 from sklearn.model_selection import KFold
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score
 
 # Configuration constants
 RANDOM_STATE = 42
-DEFAULT_WEIGHT_DECAY = 1e-4
-DEFAULT_EPOCHS = 50
+DEFAULT_WEIGHT_DECAY = 1e-3
+DEFAULT_EPOCHS = 30
 PRINT_EVERY_N_EPOCHS = 10
 
 # Set random seeds for reproducibility
 torch.manual_seed(RANDOM_STATE)
 np.random.seed(RANDOM_STATE)
 
-# Neural network using Torch. Basic structure via claude, hyperparameters self adjusted and K-fold cross validated
+# Neural network using Torch. Basic structure via claude, hyperparameters array self adjusted for K-fold cross validated
 class SimpleRegressorNet(nn.Module):
     """Simple feedforward neural network for regression"""
     
     def __init__(self, input_size, hidden_size=128, dropout_rate=0.3):
         super(SimpleRegressorNet, self).__init__()
         
-        # Architecture: Input -> Hidden -> Output
+        # Architecture:
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout_rate)  # Using dropout to try and prevent from overfittign due to small dataset and large feature map
@@ -43,7 +44,7 @@ class SimpleRegressorNet(nn.Module):
 
 
 def load_data(csv_path, target_var='averageDurationPerUser'):
-    """"Loads the given csv into a df for basic data structure"""
+    """Loads the given csv into a df for basic data structure"""
     df = pd.read_csv(csv_path)
 
     print(f"Dataset shape: {df.shape}")
@@ -59,11 +60,11 @@ def prepare_features(df):
     df = df.dropna(subset=['text_embedding']).copy()
 
     # Parsing embeddings from string to array
-    print("Parsing embeddings...")
+    print("Parsing embeddings")
     df['embedding_array'] = df['text_embedding'].apply(lambda x: np.array(ast.literal_eval(x)))
 
     # Extract time features from publishDate
-    print("Extracting Time Features...")
+    print("Extracting Time Features")
     df['publishDate'] = pd.to_datetime(df['publishDate'])
     df['day_of_week'] = df['publishDate'].dt.dayofweek # 0 for Mon, 6 for Sun
     df['month'] = df['publishDate'].dt.month
@@ -123,7 +124,7 @@ def create_feature_matrix(df, target_var='averageDurationPerUser', use_log_trans
     X = np.concatenate([embeddings, numeric_features, categorical_features], axis = 1)
     print(f"Total feature shape: {X.shape}")
 
-    # Store category columns for later use
+    # Store category columns for later use in app.py
     category_info = {
         'article_types': article_type_encoded.columns.tolist(),
         'brands': brand_encoded.columns.tolist()
@@ -141,9 +142,9 @@ def create_feature_matrix(df, target_var='averageDurationPerUser', use_log_trans
     return X, y, category_info
 
 
-# ============================================================================
+
 # HELPER FUNCTIONS FOR TRAINING
-# ============================================================================
+
 
 def prepare_data(X_train, X_test, y_train, y_test):
     """Normalize features and convert to PyTorch tensors"""
@@ -191,18 +192,6 @@ def train_model_epochs(model, optimizer, criterion, X_train_tensor, y_train_tens
     return model, train_loss, val_loss
 
 
-def calculate_baseline(y_train, y_test):
-    """Calculate baseline performance (predict mean)"""
-    baseline_pred = np.full_like(y_test, np.mean(y_train))
-    baseline_mae = np.mean(np.abs(y_test - baseline_pred))
-    baseline_mse = np.mean((y_test - baseline_pred) ** 2)
-
-    ss_tot = np.sum((y_test - np.mean(y_test)) ** 2)
-    ss_res = np.sum((y_test - baseline_pred) ** 2)
-    baseline_r2 = 1 - (ss_res / ss_tot)
-
-    return baseline_mae, baseline_mse, baseline_r2
-
 
 def evaluate_model(model, X_test_tensor, y_test_tensor, use_log_transform=True):
     """Evaluate model and return comprehensive metrics"""
@@ -245,9 +234,8 @@ def evaluate_model(model, X_test_tensor, y_test_tensor, use_log_transform=True):
     return metrics
 
 
-# ============================================================================
+
 # TRAINING FUNCTIONS
-# ============================================================================
 
 def train_model_kfold(X, y, hidden_size=128, dropout_rate=0.3, learning_rate=0.001,
                        weight_decay=DEFAULT_WEIGHT_DECAY, n_splits=5, epochs=50, verbose=True):
@@ -329,9 +317,9 @@ def tune_hyperparameters(X, y, n_splits=5, epochs=50):
                 })
 
     # Print summary
-    print(f"\n{'='*60}")
+    print("")
     print("HYPERPARAMETER TUNING RESULTS")
-    print(f"{'='*60}")
+    print("")
     results_df = pd.DataFrame(results).sort_values('avg_val_loss')
     print(results_df.to_string(index=False))
 
@@ -369,9 +357,9 @@ def train_final_model(X_train, X_test, y_train, y_test, hidden_size, dropout_rat
     metrics = evaluate_model(model, X_test_t, y_test_t, use_log_transform=True)
 
     # Print results
-    print(f"\n{'='*60}")
+    print("")
     print("FINAL MODEL EVALUATION")
-    print(f"{'='*60}")
+    print("")
     print(f"\nLog-space:     MAE={metrics['mae_log']:.4f}, R²={metrics['r2_log']:.4f}")
     print(f"Original-scale: MAE={metrics['mae_orig']:,.2f}, R²={metrics['r2_orig']:.4f}")
 
@@ -419,43 +407,57 @@ def load_model(load_path):
     return model, scaler, category_info
 
 
-# ============================================================================
+
 # MAIN EXECUTION
-# ============================================================================
+if __name__ == '__main__':
+    TARGET_VAR = 'pageViewsTotal'  # Change this to one of the other performance metrics to switch response
 
-TARGET_VAR = 'pageViewsTotal'  # Change this to switch targets
+    df = load_data("data/hnhh_processed.csv", target_var=TARGET_VAR)
+    df = prepare_features(df)
 
-df = load_data("data/hnhh_processed.csv", target_var=TARGET_VAR)
-df = prepare_features(df)
+    # CLipping the dataset
+    q_hi = df[TARGET_VAR].quantile(0.98)
+    df[TARGET_VAR] = np.minimum(df[TARGET_VAR], q_hi)
 
-X, y, category_info = create_feature_matrix(df, target_var=TARGET_VAR)
+    X, y, category_info = create_feature_matrix(df, target_var=TARGET_VAR)
 
-# Split data, creating a hold-out test set
-print("\n" + "="*60)
-print("SPLITTING DATA - Creating hold-out test set")
-print("="*60)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_STATE)
-print(f"Training set: {X_train.shape[0]} samples")
-print(f"Test set (hold-out): {X_test.shape[0]} samples")
+    # Split data, creating a hold-out test set
+    print("\n")
+    print("SPLITTING DATA - Creating hold-out test set")
+    print()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_STATE)
+    print(f"Training set: {X_train.shape[0]} samples")
+    print(f"Test set (hold-out): {X_test.shape[0]} samples")
 
-# Run hyperparameter tuning ONLY on training data
-print("\n" + "="*60)
-print("HYPERPARAMETER TUNING - Using only training data with K-fold CV")
-print("="*60)
-results = tune_hyperparameters(X_train, y_train, n_splits=5, epochs=30)
+    # Run hyperparameter tuning ONLY on training data
+    print("\n")
+    print("HYPERPARAMETER TUNING - Using only training data with K-fold CV")
+    print()
+    results = tune_hyperparameters(X_train, y_train, n_splits=5, epochs=15)
 
-# Train final model on training data, evaluate on TRUE hold-out test set
-print("\n" + "="*60)
-print("FINAL MODEL TRAINING AND EVALUATION")
-print("="*60)
-best = results.iloc[0]
-final_model, final_scaler = train_final_model(
-    X_train, X_test, y_train, y_test,
-    hidden_size=int(best['hidden_size']),
-    dropout_rate=best['dropout_rate'],
-    learning_rate=best['learning_rate'],
-    weight_decay=DEFAULT_WEIGHT_DECAY,
-    epochs=DEFAULT_EPOCHS,
-    save_path='src/models/pageviews_model.pt',
-    category_info=category_info
-)
+    # Train final model on training data, evaluate on TRUE hold-out test set
+    print("\n")
+    print("FINAL MODEL TRAINING AND EVALUATION")
+    print()
+    best = results.iloc[0]
+    final_model, final_scaler = train_final_model(
+        X_train, X_test, y_train, y_test,
+        hidden_size=int(best['hidden_size']),
+        dropout_rate=best['dropout_rate'],
+        learning_rate=best['learning_rate'],
+        weight_decay=DEFAULT_WEIGHT_DECAY,
+        epochs=DEFAULT_EPOCHS,
+        save_path='src/models/pageviews_model.pt',
+        category_info=category_info
+    )
+    
+    # Test against a Linear Regression 
+    ridge = Ridge(alpha=1.0)
+    ridge.fit(X_train, y_train)
+    y_pred_test = ridge.predict(X_test)
+    print("R² log-space (Ridge):", r2_score(y_test, y_pred_test))
+
+    # Transform back to original scale
+    y_test_orig = np.expm1(y_test)
+    y_pred_test_orig = np.expm1(y_pred_test)
+    print("R² original-scale (Ridge):", r2_score(y_test_orig, y_pred_test_orig))

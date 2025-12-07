@@ -330,7 +330,10 @@ async def process_batch_async(
                 elapsed = (datetime.now() - start_time).total_seconds()
                 rate = processed / elapsed
                 remaining = len(pending_indices) - processed
-                eta_seconds = remaining / rate if rate > 0 else 0
+                if rate > 0:
+                    eta_seconds = remaining / rate
+                else:
+                   eta_seconds = 0
 
                 print(f"Progress: {processed}/{len(pending_indices)} "
                       f"({processed/len(pending_indices)*100:.1f}%) | "
@@ -349,7 +352,7 @@ async def process_batch_async(
             error_df = pd.DataFrame(errors)
             error_log_file = 'data/gpt_processing_errors.csv'
             error_df.to_csv(error_log_file, index=False)
-            print(f"\n✓ Error log saved: {error_log_file}")
+            print(f"\n Error log saved: {error_log_file}")
 
         # Summary
         print(f"\n{'='*60}")
@@ -362,7 +365,7 @@ async def process_batch_async(
         print(f"{'='*60}")
 
         if errors:
-            print(f"\n⚠ {len(errors)} rows failed. Rerun script to retry (auto-detects unprocessed rows).")
+            print(f"\n {len(errors)} rows failed. Rerun script to retry (auto-detects unprocessed rows).")
 
 
 async def main_parallel(
@@ -372,7 +375,7 @@ async def main_parallel(
     checkpoint_interval: int = 50,
     max_rows: int = None
 ):
-    """Async entry point for parallel batch processing"""
+    """Main function equivalent for Async/parallel batch processing"""
 
     print(f"{'='*60}")
     print(f"OpenAI GPT Parallel Batch Processing")
