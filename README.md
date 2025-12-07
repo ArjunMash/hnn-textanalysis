@@ -3,6 +3,8 @@ This repo is dedicated to a series of scripts meant to enrich a CSV of analytics
 
 It's important to note this project was a fantastic oppurtunity to practice working with a non-technical partner to help transform their business requirements to technical needs.
 
+**tldr:** Skip to [here](##Demo-/-Code-Explanation:) to see me demo
+
 #### The pipeline:
 1. Crawl and extract my roommate's articles (Ben Atkinson) from the company's webpage using the **Firecrawl API** and URLs in the provided CSV
 2. The content is then processed with GPT to generate some basic features like the article type and shoe brand mentioned. Further, some text attributes are calculated (number of paragraphs, article length, etc.). Embeddings are also created.
@@ -94,12 +96,13 @@ Before running any programs begin by installing the requirements and creating a 
     - If you'd like to enrich the csv in it's entirety I reccomend running the parallelized functions which run against OpenAI's async endpoints. You can use run this bash command: `python scripts/models/feature_eng.py parallel` which runs the script with 50 concurrent requests being made to OpenAI's APIs. Rows that are failed to process will be saved to an error log under located at `data/gpt_processing_errors.csv`. This step should take about 5 minutes.
 3. Train the Neural Network using [Model1.py](scripts/models/model1.py) and monitor the terminal outputs to see model statistics and cross validation results. Also feel free to adjust the model architecture by changing the constants between lines 14-18. 
    - **Important Note:** Please don't laugh at my R², I really did try. 
-4. Launch the streamlit app by running `streamlit run app.py` in your terminal. And test out an article, I reccomend you a) stifle your expectations and b) grab an article from this [link](https://www.hotnewhiphop.com/articles/sneakers) that's about 7 days old, fill in the form fields and click predict.
+4. Launch the streamlit app by running `streamlit run app.py` in your terminal. And test out an article, I reccomend you **a)** stifle your expectations and **b)** grab an article from this [link](https://www.hotnewhiphop.com/articles/sneakers) that's about 7 days old, fill in the form fields and click predict.
 
 
-**Note: There is a EDA notebook which was 'read only', with none of the changes being saved to the HNHH_Processed.CSV. This script was used to generate the graphics above and guide initial modelling. The Model scripts to be run without having to use the Jupyter Notebook.** 
+**Note:** There is an EDA notebook which was 'read only', with none of the changes being saved to the HNHH_Processed.CSV. This script was used to generate the graphics above and guide initial modelling. The Model scripts to be run without having to use the Jupyter Notebook.
 
 ## Demo / Code Explanation:
+
 
 
 

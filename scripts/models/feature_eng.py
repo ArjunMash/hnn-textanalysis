@@ -268,7 +268,7 @@ async def process_single_row(async_client, df, row_index, semaphore, rate_limite
             return {'success': True, 'row_index': row_index}
 
         except Exception as e:
-            print(f"✗ Error processing row {row_index}: {type(e).__name__}: {e}")
+            print(f"Error processing row {row_index}: {type(e).__name__}: {e}")
             # Get URL for error log
             url = df.loc[row_index, 'url'] if 'url' in df.columns else 'N/A'
             return {
@@ -288,7 +288,7 @@ async def process_batch_async(
     checkpoint_interval: int = 50,
     max_rows: int = None
 ):
-    """ Orchestrator for the parallel processing of feature enhancement"""
+    """Orchestrator for the parallel processing of feature enhancement"""
 
     # Load data and find pending rows
     df, pending_indices = load_and_resume(input_file)
@@ -419,7 +419,7 @@ def main():
         df.loc[i, 'sneaker_brand'] = sneaker_brand
 
         # Generate embeddings:
-        df.loc[i, 'text_embedding'] = get_embedding(article_text)
+        df.loc[i, 'text_embedding'] = json.dumps(get_embedding(article_text))
     # Display results
     print("\nResults:")
     print(df[['url', 'avg_sentence_length', 'num_sentences', 'num_paragraphs',
