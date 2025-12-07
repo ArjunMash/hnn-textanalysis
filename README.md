@@ -11,6 +11,9 @@ It's important to note this project was a fantastic oppurtunity to practice work
 3. Using PyTorch a Neural Network is then trained, cross-validated and tested. 
 4. The model is then exposed through a simple Streamlit app allowing a user to input an article and receive a prediction of the article's page views.
 
+#### Visual modelling of dataflow:
+![Data Flow](plots/dataflow.png)
+
 ---
 
 ## Objectives
@@ -103,7 +106,7 @@ Before running any programs begin by installing the requirements and creating a 
 
 ## Demo / Code Explanation:
 
-
+[Demo of the Streamlit App](https://drive.google.com/file/d/174Fpiyz7w_hI9F35O-9lzdF_zU1ZmglT/view?usp=drive_link), Firecrawl usage and OpenAI calls are shown in this video. Had to cut the video short (and it's still long), so feel free to email if you have any questions. I reccommend watching at 1.25x speed. 
 
 
 ## Considering why this might not have worked?
