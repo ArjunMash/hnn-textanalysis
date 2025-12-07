@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import requests
-import json
 import pandas as pd
 import time
 
@@ -210,14 +209,14 @@ def extract_article_text(html: str) -> tuple:
     return "\n\n".join(parts), meta_desc
 
 def main():
-    # Start off with one URL to test extraction workflow
-    #url =  "https://www.hotnewhiphop.com/952232-air-jordan-11-285-sneaker-news-2"
+    # # Start off with one URL to test extraction workflow
+    # url =  "https://www.hotnewhiphop.com/952232-air-jordan-11-285-sneaker-news-2"
     # article = get_html(url)
     # article_text = article
     # print(article)
     
-    # Get article body text and meta description
-    #article_text, article_meta = extract_article_text(article)
+    # # Get article body text and meta description
+    # article_text, article_meta = extract_article_text(article)
     # print(article_text)
     # print(article_meta) 
     

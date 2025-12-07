@@ -45,7 +45,7 @@ I used AI to help outline the skeleton of the streamlit app and to assist with t
 Since I also made OpenAI API calls within my processing scripts I metaprompted to create a very clear prompt that I could pass into the OpenAI API for the best results. 
 
 
-### Meta Prompt to Create [Prompt1](src/models/prompts/prompt1.py)
+### Meta Prompt to Create [Prompt1](scripts/models/prompts/prompt1.py)
 > I will be passing an article about sneakers into an OpenAI api call as a string. These articles are typically around ~300 words but can range up to 1,500 on rare occasion. I’m planning on using GPT to add features to a training set for an ML model I’m making downstream  From this string I want to pull: 
 >
 > Sneaker_price: should only be a single value $ amount of the primary sneaker being mentioned. If there are multiple prices mentioned, deem to pick the highest one

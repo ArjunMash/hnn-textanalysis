@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Add src directory to path to import model
-from src.models.model1 import SimpleRegressorNet, load_model
-from src.models.feature_eng import get_body_struct, get_embedding
+# Add scripts directory to path to import model
+from scripts.models.model1 import SimpleRegressorNet, load_model
+from scripts.models.feature_eng import get_body_struct, get_embedding
 
 # Initialize OpenAI client
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -27,7 +27,7 @@ st.write("Predict how many pageviews your sneaker article might get")
 @st.cache_resource
 def load_trained_model():
     """Load the trained model, scaler, and category info"""
-    model_path = "src/models/pageviews_model.pt"
+    model_path = "scripts/models/pageviews_model.pt"
     try:
         model, scaler, category_info = load_model(model_path)
         return model, scaler, category_info
@@ -38,7 +38,7 @@ def load_trained_model():
 model, scaler, category_info = load_trained_model()
 
 if model is None:
-    st.error("Failed to load model. Please ensure the model file exists at src/models/pageviews_model.pt")
+    st.error("Failed to load model. Please ensure the model file exists at scripts/models/pageviews_model.pt")
     st.stop()
 
 def prepare_input_features(text, article_type, sneaker_brand, sneaker_price, publish_date, category_info):

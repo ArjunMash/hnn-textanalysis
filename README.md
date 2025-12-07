@@ -55,7 +55,7 @@ Now since most of these analytics are derivatives of one another this project re
 ### Required APIs:
 Users will need an [OpenAI](https://openai.com/api/pricing/) & [Firecrawl API](https://www.firecrawl.dev/pricing) key. 
 
-The Firecrawl API can be used for free (with 500 limited credits) and has a promotional code for students to use up to 20,000 credits. Do note that if using the free tier for Firecrawl you will have to adjust `RATE_LIMIT_DELAY` in the [firecrawl_client](src/scraping/firecrawl_client.py) script. I've left a comment on line 72 to make this easy and left a few lines commented code in the main function for users to test the functions. 
+The Firecrawl API can be used for free (with 500 limited credits) and has a promotional code for students to use up to 20,000 credits. Do note that if using the free tier for Firecrawl you will have to adjust `RATE_LIMIT_DELAY` in the [firecrawl_client](scripts/scraping/firecrawl_client.py) script. I've left a comment on line 72 to make this easy and left a few lines commented code in the main function for users to test the functions. 
 
 ---
 
@@ -66,13 +66,13 @@ The Firecrawl API can be used for free (with 500 limited credits) and has a prom
 ├── data/
 │   └── hnnh_base.csv             # Base CSV File to be enriched and GPT Processed. If interested in seeing scripts
 │                                   run, delete all other CSVs
-├── src/
+├── scripts/
 │   ├── models/
 │   │   │── feature_engineering.py       # Creating new features using OpenAI API and Python computations
 │   │   │── prompts/
-│   │   │   └── prompt1.py               # Prompt used to extract sneaker brand, article type 
+│   │   │   └── prompt1.py               # Prompt used to extract sneaker brand, article type
 │   │   │                                  and sneaker price from article
-│   │   │── model1.py                    # Python program using PyTorch to create and run a Neural Network 
+│   │   │── model1.py                    # Python program using PyTorch to create and run a Neural Network
 │   │   │                                  using the engineered features
 │   │   └── EDA.ipynb                    # Jupyter notebook dedicated to Exploratory Data Analysis
 │   └──scraping/
@@ -88,11 +88,11 @@ The Firecrawl API can be used for free (with 500 limited credits) and has a prom
 Before running any programs begin by installing the requirements and creating a valid env using this provided [sample](.env.sample). And if you want to test the full data processing pipeline I reccomend you begin by deleting all CSVs other than [this CSV](data/hnnh_base.csv). 
 
 ### Script Execution:
-1. Run [firecrawl_client.py](src/scraping/firecrawl_client.py) to enrich the base csv with text scraped from the Hot New Hip Hop website. Depending on API tier this can take between 10 minutes and 1.5 hours. Remember to adjust `RATE_LIMIT_DELAY` on line 72.
-2. Run [feature_eng.py](src/models/feature_eng.py) to use the text to create new features within the CSV like: Article Type, Sneaker Price and text embeddings. Some things to note:
-    - If you just want to test the functionality of the sync functions against ten recrods you can run the file normally. 
-    - If you'd like to enrich the csv in it's entirety I reccomend running the parallelized functions which run against OpenAI's async endpoints. You can use run this bash command: `python src/models/feature_eng.py parallel` which runs the script with 50 concurrent requests being made to OpenAI's APIs. Rows that are failed to process will be saved to an error log under located at `data/gpt_processing_errors.csv`. This step should take about 5 minutes.
-3. Train the Neural Network using [Model1.py](src/models/model1.py) and monitor the terminal outputs to see model statistics and cross validation results. Also feel free to adjust the model architecture by changing the constants between lines 14-18. 
+1. Run [firecrawl_client.py](scripts/scraping/firecrawl_client.py) to enrich the base csv with text scraped from the Hot New Hip Hop website. Depending on API tier this can take between 10 minutes and 1.5 hours. Remember to adjust `RATE_LIMIT_DELAY` on line 72.
+2. Run [feature_eng.py](scripts/models/feature_eng.py) to use the text to create new features within the CSV like: Article Type, Sneaker Price and text embeddings. Some things to note:
+    - If you just want to test the functionality of the sync functions against ten recrods you can run the file normally.
+    - If you'd like to enrich the csv in it's entirety I reccomend running the parallelized functions which run against OpenAI's async endpoints. You can use run this bash command: `python scripts/models/feature_eng.py parallel` which runs the script with 50 concurrent requests being made to OpenAI's APIs. Rows that are failed to process will be saved to an error log under located at `data/gpt_processing_errors.csv`. This step should take about 5 minutes.
+3. Train the Neural Network using [Model1.py](scripts/models/model1.py) and monitor the terminal outputs to see model statistics and cross validation results. Also feel free to adjust the model architecture by changing the constants between lines 14-18. 
    - **Important Note:** Please don't laugh at my R², I really did try. 
 4. Launch the streamlit app by running `streamlit run app.py` in your terminal. And test out an article, I reccomend you a) stifle your expectations and b) grab an article from this [link](https://www.hotnewhiphop.com/articles/sneakers) that's about 7 days old, fill in the form fields and click predict.
 

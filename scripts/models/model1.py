@@ -447,7 +447,7 @@ if __name__ == '__main__':
         learning_rate=best['learning_rate'],
         weight_decay=DEFAULT_WEIGHT_DECAY,
         epochs=DEFAULT_EPOCHS,
-        save_path='src/models/pageviews_model.pt',
+        save_path='scripts/models/pageviews_model.pt',
         category_info=category_info
     )
     
