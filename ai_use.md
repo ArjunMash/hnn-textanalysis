@@ -3,16 +3,16 @@ This was my first time coding in concert with an AI tool. I've typically resiste
 
 I used Claude Code as my copilot of choice. I kept Claude in the "Ask Before Edits" so I could closely monitor any code generation. This helped me learn and make stylistic adjustments as I progressed through the project. Due to the odd structure of my data and some of the contextual awareness that Data Science requires, this was a worth while decision. 
 
-I will say as I progressed through the project my AI Use increased alongside my comfort with interpretting/using Claude. That said, in my README I've added a comprehensive "Code Explantaion" section to demonstrate my awareness
+I will say as I progressed through the project my AI Use increased alongside my comfort with interpretting/using Claude. That said, in my README I've added a comprehensive "Code Explantaion" section to demonstrate my understanding of the various files. 
 
 ## Heaviest Usage:
 
 ### OpenAI Request Parallelization
 Due to the time constraints of this project I knew I would need to convert my synchronous OpenAI API calls to Async functions and parallellize my requests. As such I first built a POC of my GPT enrichment script (almost all by hand) using the sync functions. This helped me understand the basic workflow that would need to occur at each row. I made some initial requests to verify this process.  
 
-Converting to the parallel process was heavily Claude augmented. That said, I wanted to be cognizant of my token usage, potential rate limiting and ensure any programs Claude wrote were explicable + easy to test partially before letting lose across all 1000 rows. 
+Converting to the parallel process was heavily Claude augmented. That said, I wanted to be cognizant of my token usage, potential rate limiting and ensure any programs Claude wrote were explicable + able to be tested partially before letting lose across all 1000 rows. 
 
-To prevent and manage any possible complications I did two things:
+To prevent and manage possible complications I did two things:
 1. Spec driven development for the conversion. I was very explicit in my specs for the new parallelized function. This included specifiying the number of parallel instances I'd like to be able to spin up, the abillity to test partially, 'save' progress every 50 lines and to have the function check for whether the record had already been enriched. 
 2. Once this was built I reviewed the code (even phoning a friend who is a SWE to help understand the nuances of something like a semaphore). Then I ran the script on a limited portion of the CSV to verify the code worked like I expected without wastefully burning through tokens. 
 
@@ -38,8 +38,11 @@ An excerpt from Claude when I caught this error:
 
 I want to revist Torch documentation and try building other model types 
 
+### Importing the models into Streamlit
+I used AI to help outline the skeleton of the streamlit app. I implemented 
+
 ## Meta Prompting
-Since I also made OpenAI API calls within my processing scripts I metaprompted to shape an explicit prompt that I could pass into the OpenAI API. 
+Since I also made OpenAI API calls within my processing scripts I metaprompted to create a very clear prompt that I could pass into the OpenAI API for the best results. 
 
 
 ### Meta Prompt to Create [Prompt1](src/models/prompts/prompt1.py)

@@ -9,7 +9,11 @@ import asyncio
 from datetime import datetime, timedelta
 import json
 
-from prompts.prompt1 import SYSTEM_PROMPT
+# Handle requests from a script run and from Streamlit run
+try:
+    from prompts.prompt1 import SYSTEM_PROMPT # Runing this script
+except ModuleNotFoundError:
+    from .prompts.prompt1 import SYSTEM_PROMPT # Streamlit app
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,52 +39,6 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 # A checkpoint for number of rows to save progress at
 CHECKPOINT_INTERVAL = 50
-
-# Used Claude to help implement this function to prevent exceeding OpeanAI RPM/TPM limits
-class RateLimiter:
-    """Tracks rate limits from OpenAI response headers and calculates adaptive delays"""
-    def __init__(self):
-        self.remaining_requests = float('inf')
-        self.limit_requests = float('inf')
-        self.remaining_tokens = float('inf')
-        self.limit_tokens = float('inf')
-
-    def update_from_headers(self, headers):
-        """Update rate limit state from response headers"""
-        self.remaining_requests = int(headers.get('x-ratelimit-remaining-requests', self.remaining_requests))
-        self.limit_requests = int(headers.get('x-ratelimit-limit-requests', self.limit_requests))
-        self.remaining_tokens = int(headers.get('x-ratelimit-remaining-tokens', self.remaining_tokens))
-        self.limit_tokens = int(headers.get('x-ratelimit-limit-tokens', self.limit_tokens))
-
-    async def get_delay(self) -> float:
-        """Calculate delay based on remaining capacity"""
-        if self.remaining_requests == float('inf'):
-            return 0.1
-
-        utilization = 1 - (self.remaining_requests / self.limit_requests)
-
-        if utilization > 0.9:
-            return 2.0  # Aggressive backoff
-        elif utilization > 0.8:
-            return 0.5  # Moderate backoff
-        else:
-            return 0.1  # Normal pacing
-
-
-
-async def get_embeddings_async(async_client, body):
-    """Generate embeddings using OpenAI text-embedding-3-small"""
-    # Clean the text (remove newlines as recommended by OpenAI)
-    text = body.replace("\n", " ")
-
-    # Generate embedding
-    response = await async_client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
-
-    # Return the vector embedding
-    return response.data[0].embedding
 
 
 def get_body_struct(body)-> tuple:
@@ -138,6 +96,67 @@ def gpt_process(body)-> tuple:
     sneaker_brand = info.sneaker_brand
 
     return sneaker_price, article_type, sneaker_brand
+
+# Sync function to generate embeddings using OpenAI text-embedding-3-small
+def get_embedding(text):
+    """Generate embedding using OpenAI text-embedding-3-small"""
+    # Clean the text
+    text = text.replace("\n", " ").strip()
+
+    # Generate embedding
+    response = client.embeddings.create(
+        input=[text],
+        model="text-embedding-3-small"
+    )
+
+    return response.data[0].embedding
+
+
+# Used Claude to help implement these features to allow parallelization while not exceeding OpenAI RPM/TPM limits
+class RateLimiter:
+    """Tracks rate limits from OpenAI response headers and calculates adaptive delays"""
+    def __init__(self):
+        self.remaining_requests = float('inf')
+        self.limit_requests = float('inf')
+        self.remaining_tokens = float('inf')
+        self.limit_tokens = float('inf')
+
+    def update_from_headers(self, headers):
+        """Update rate limit state from response headers"""
+        self.remaining_requests = int(headers.get('x-ratelimit-remaining-requests', self.remaining_requests))
+        self.limit_requests = int(headers.get('x-ratelimit-limit-requests', self.limit_requests))
+        self.remaining_tokens = int(headers.get('x-ratelimit-remaining-tokens', self.remaining_tokens))
+        self.limit_tokens = int(headers.get('x-ratelimit-limit-tokens', self.limit_tokens))
+
+    async def get_delay(self) -> float:
+        """Calculate delay based on remaining capacity"""
+        if self.remaining_requests == float('inf'):
+            return 0.1
+
+        utilization = 1 - (self.remaining_requests / self.limit_requests)
+
+        if utilization > 0.9:
+            return 2.0  # Aggressive backoff
+        elif utilization > 0.8:
+            return 0.5  # Moderate backoff
+        else:
+            return 0.1  # Normal pacing
+
+
+
+async def get_embeddings_async(async_client, body):
+    """Generate embeddings using OpenAI text-embedding-3-small"""
+    # Clean the text (remove newlines as recommended by OpenAI)
+    text = body.replace("\n", " ")
+
+    # Generate embedding
+    response = await async_client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+
+    # Return the vector embedding
+    return response.data[0].embedding
 
 
 async def gpt_process_async(async_client, body, rate_limiter):
@@ -210,7 +229,7 @@ def load_and_resume(input_file):
 
 async def process_single_row(async_client, df, row_index, semaphore, rate_limiter):
     """Process one row with semaphore control"""
-    async with semaphore: # Note to self: basically like a global lock to prevent multiple threads from touching the same block
+    async with semaphore: # Note to self: semaphores are like a global lock to prevent multiple threads from touching the same block
         try:
             article_text = df.loc[row_index, 'text']
 
@@ -375,6 +394,7 @@ async def main_parallel(
 
 def main():
     df = pd.read_csv('data/hnhh_enriched.csv', nrows=10)
+    print("Running Test Script w/ Sync Functions")
 
     # Process each row
     for i in range(len(df)):
@@ -395,6 +415,8 @@ def main():
         df.loc[i, 'article_type'] = article_type
         df.loc[i, 'sneaker_brand'] = sneaker_brand
 
+        # Generate embeddings:
+        df.loc[i, 'text_embedding'] = get_embedding(article_text)
     # Display results
     print("\nResults:")
     print(df[['url', 'avg_sentence_length', 'num_sentences', 'num_paragraphs',
@@ -417,5 +439,5 @@ if __name__ == "__main__":
             max_rows=max_rows
         ))
     else:
-        # Original sync version for testing
+        # Sync version for testing
         main()

@@ -177,7 +177,6 @@ def extract_article_text(html: str) -> tuple:
     soup = BeautifulSoup(html, "html.parser")
 
     # Dek / meta description (the bold line atop each article and SEO preview)
-    # This was specifically requested by my roommate
     meta_desc = None
     dek_span = soup.select_one(
         "span.font-lora.text-dark-grey.font-bold, "
@@ -224,7 +223,7 @@ def main():
     # print(article_text)
     # print(article_meta) 
     
-    read_file = "/Users/arjunmasciarelli/CodingProjects/hnn-textanalysis/data/all_articles_first_week.csv"
+    read_file = "/Users/arjunmasciarelli/CodingProjects/hnn-textanalysis/data/hnnh_base.csv"
     write_file = "/Users/arjunmasciarelli/CodingProjects/hnn-textanalysis/data/hnhh_enriched.csv"
     
     enrich_csv(read_file, write_file)

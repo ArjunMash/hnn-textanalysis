@@ -1,42 +1,36 @@
 # hnn-textanalysis
-Scraping content from HNN and conducting ML modelling on each article
-
-# Sneaker Article Performance Analytics
-
-This project analyzes the performance of sneaker articles written by a single author (~1,543 articles over the past year) and explores which content and metadata features are associated with higher engagement and revenue.
+This repo is dedicated to a series of scripts meant to enrich a CSV of analytics on Sneakers articles written on Hot New Hip Hop. At a high level, the program scrapes content from HNNH, analyzes the text with GPT, creates embeddings and builds a neural network (intended) to predict the # of views an article might get.
 
 The pipeline:
 
-1. Crawls and extracts only my roommate's articles from the company's webpage using the **Firecrawl API**.
-2. Structures the content and engagement metrics into a clean dataset for analysis.
-3. Trains and evaluates ML models to understand what drives article performance.
-4. Exposes results through a simple dashboard / web app.
+1. Crawls and extracts only my roommate's articles from the company's webpage using the **Firecrawl API** and URLs in the provided CSV
+2. The content is then processed with GPT to generate some basic features like the article type and shoe brand mentioned. Furthermore some text attributes are calculated (number of paragraphs, article length, etc.). Embeddings are also created.
+3. Using PyTorch a Neural Network is then trained, cross-validated and tested.
+4. This model is then exposed through a simple Streamlit app allowing a user to input an article and receive a prediction of the article's page views.
 
 ---
 
-## Goals
+## Initial Goals
 
 - **Web Scraping & Ingestion**
-  - Use Firecrawl API to crawl and extract article content and metadata for a single author.
-  - Deduplicate, clean, and normalize article data.
+  - Use Firecrawl API to crawl and extract article content from the web.
+  - Clean the scraped data and format the text for downstream processing.
 - **Data Engineering**
-  - Combine scraped data with external analytics metrics.
+  - Combine scraped data to the provided CSV of analytics
+  - Add additioanl features to the data set using OpenAI embeddings, GPT and basic Python computations.
   - Produce a structured dataset suitable for ML and exploratory analysis.
 - **Machine Learning**
   - Apply ML techniques (informed by QTM-3635) to:
-    - Predict engagement / performance.
+    - Predict artiicle performance/page views.
     - Identify which features matter most (e.g., text features, metadata, publish time).
 - **Visualization / WebApp**
-  - Build a simple dashboard/web app to explore:
-    - Article-level metrics.
-    - Feature importance.
-    - Distributions and trends over time.
+  - Build a simple dashboard/web app to make the model usable to a user seeking to 'optimize' their text.
 
 ---
 
 ## Data
 
-Currently available metrics from an external analytics source include (per article):
+Currently available metrics provided by an external analytics source include (per article):
 
 - `url`
 - `uniqueUsers`
@@ -61,13 +55,16 @@ Plus whatever is scraped from the article pages:
 
 ---
 
-## Tech Stack (Planned)
+## Tech Stack
 
 - **Language:** Python
 - **Scraping:** Firecrawl API
 - **Data / Analysis:** pandas, NumPy, scikit-learn (and/or similar)
 - **Modeling:** Regression / classification models; feature importance analysis
 - **Dashboard / WebApp:** (e.g., Streamlit / FastAPI + frontend – TBD)
+
+### Required APIs:
+Users will need an [OpenAI](https://openai.com/api/pricing/) & [Firecrawl API](https://www.firecrawl.dev/pricing) key. The Firecrawl API can be used for free (with 500 limited credits). 
 
 ---
 
@@ -76,35 +73,30 @@ Plus whatever is scraped from the article pages:
 ```
 .
 ├── data/
-│   ├── raw/          # Raw scraped data & analytics exports
-│   └── processed/    # Cleaned, merged datasets ready for modeling
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   └── 02_modeling.ipynb
+│   └── hnnh_base.csv             # Base CSV File to be enriched and GPT Processed
+│   
 ├── src/
+│   ├── models/
+│   │   │── feature_engineering.py       # Creating new features using OpenAI API and Python computations
+│   │   │── prompts/
+│   │   │   └── prompt1.py               # Prompt used to extract sneaker brand, article type and sneaker price from article
+│   │   │── model1.py                    # Python program using PyTorch to create and run a Neural Network using the engineered features
+│   │   └── EDA.ipynb                    # Jupyter notebook dedicated to Exploratory Data Analysis
 │   ├── scraping/
 │   │   └── firecrawl_client.py   # Wrapper around Firecrawl API
-│   ├── data/
-│   │   └── merge_analytics.py    # Join scraped data with metrics
-│   ├── models/
-│   │   └── train_models.py       # Training & evaluation scripts
-│   └── app/
-│       └── dashboard.py          # Web dashboard / web app entrypoint
-├── .env.example
-├── requirements.txt
-└── README.md
+│
+├── app.py                        # Streamlit App exposing underlying Neural Network
+├── data_dictionary.md            # Dictionary explaining the column headers of the base CSV
+├── README.md
+└── requirements.txt
 ```
 ## The Data:
 
 ## How To Use These Scripts:
-If you want to test the full data processing pipeline I reccomend you delete all CSVs other than: [this CSV](data/all_articles_first_week.csv). 
+If you want to test the full data processing pipeline I reccomend you delete all CSVs other than: [this CSV](data/hnnh_base.csv).
 
 ## Code Explanation:
-
 **Note: The EDA notebook is 'read only', none of the changes are saved to the HNHH_Processed.CSV. Instead I decided to make these changes in the model scripts instead. This allows the Model scripts to be run without having to use the Jupyter Notebook.** 
 
-### API Requirements: 
-
-Due to the presence of outliers with a large # of pageviews I decided to use a log scale in the response.
-
 ## Considering why this might not have worked?
+Due to the presence of outliers with a large # of pageviews I decided to use a log scale in the response.

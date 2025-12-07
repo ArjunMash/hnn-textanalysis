@@ -123,6 +123,12 @@ def create_feature_matrix(df, target_var='averageDurationPerUser', use_log_trans
     X = np.concatenate([embeddings, numeric_features, categorical_features], axis = 1)
     print(f"Total feature shape: {X.shape}")
 
+    # Store category columns for later use
+    category_info = {
+        'article_types': article_type_encoded.columns.tolist(),
+        'brands': brand_encoded.columns.tolist()
+    }
+
     # Response variable (y-hat)
     y = df[target_var].values
 
@@ -132,7 +138,7 @@ def create_feature_matrix(df, target_var='averageDurationPerUser', use_log_trans
         print(f"\nApplied log transform to target variable")
         print(f"Transformed target - Mean: {np.mean(y):.2f}, Std: {np.std(y):.2f}")
 
-    return X, y
+    return X, y, category_info
 
 
 # ============================================================================
@@ -339,7 +345,7 @@ def tune_hyperparameters(X, y, n_splits=5, epochs=50):
     return results_df
 
 
-def train_final_model(X_train, X_test, y_train, y_test, hidden_size, dropout_rate, learning_rate, weight_decay=DEFAULT_WEIGHT_DECAY, epochs=DEFAULT_EPOCHS, save_path=None):
+def train_final_model(X_train, X_test, y_train, y_test, hidden_size, dropout_rate, learning_rate, weight_decay=DEFAULT_WEIGHT_DECAY, epochs=DEFAULT_EPOCHS, save_path=None, category_info=None):
     """Train final model with best hyperparameters and evaluate on hold-out test set"""
 
     # Prepare data
@@ -371,14 +377,17 @@ def train_final_model(X_train, X_test, y_train, y_test, hidden_size, dropout_rat
 
     # Save model if path provided
     if save_path:
-        torch.save({
+        checkpoint = {
             'model_state_dict': model.state_dict(),
             'scaler': scaler,
             'input_size': X_train.shape[1],
             'hidden_size': hidden_size,
             'dropout_rate': dropout_rate,
             'metrics': metrics
-        }, save_path)
+        }
+        if category_info:
+            checkpoint['category_info'] = category_info
+        torch.save(checkpoint, save_path)
         print(f"\nModel saved to {save_path}")
 
     return model, scaler
@@ -386,7 +395,8 @@ def train_final_model(X_train, X_test, y_train, y_test, hidden_size, dropout_rat
 
 def load_model(load_path):
     """Load a saved model from disk"""
-    checkpoint = torch.load(load_path)
+    # Load with weights_only=False since we're loading scikit-learn objects
+    checkpoint = torch.load(load_path, weights_only=False)
 
     # Reconstruct model
     model = SimpleRegressorNet(
@@ -397,15 +407,16 @@ def load_model(load_path):
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
 
-    # Get scaler and metrics
+    # Get scaler, metrics, and category info
     scaler = checkpoint['scaler']
     metrics = checkpoint.get('metrics', None)
+    category_info = checkpoint.get('category_info', None)
 
     print(f"Model loaded from {load_path}")
     if metrics:
         print(f"Saved metrics - MAE: {metrics['mae_log']:.4f}, R²: {metrics['r2_log']:.4f}")
 
-    return model, scaler
+    return model, scaler, category_info
 
 
 # ============================================================================
@@ -417,7 +428,7 @@ TARGET_VAR = 'pageViewsTotal'  # Change this to switch targets
 df = load_data("data/hnhh_processed.csv", target_var=TARGET_VAR)
 df = prepare_features(df)
 
-X, y = create_feature_matrix(df, target_var=TARGET_VAR)
+X, y, category_info = create_feature_matrix(df, target_var=TARGET_VAR)
 
 # Split data, creating a hold-out test set
 print("\n" + "="*60)
@@ -445,5 +456,6 @@ final_model, final_scaler = train_final_model(
     learning_rate=best['learning_rate'],
     weight_decay=DEFAULT_WEIGHT_DECAY,
     epochs=DEFAULT_EPOCHS,
-    save_path='src/models/pageviews_model.pt'
+    save_path='src/models/pageviews_model.pt',
+    category_info=category_info
 )
