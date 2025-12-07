@@ -36,10 +36,10 @@ For example instead of properly reccomending a K-fold cross validation process t
 An excerpt from Claude when I caught this error:
 > Great catch! You're absolutely right to be confused - I made an error in my explanation. What we built earlier: The train_model_kfold function was doing K-fold CV with fixed hyperparameters (hidden_size=128, dropout=0.3, lr=0.001). It was just training the same model 5 times on different data splits to get a more robust estimate of performance.
 
-I want to revist Torch documentation and try building other model types 
+Of all the code in this repo the modelling is the one part where the code began to feel (for lack of a better word) convoluted. Thus, I want to revist the PyTorch and Scikit documentation and try rebuilding another NN across more records. I also have an RTX-2070 which I would like to expirement with using for training, at some point. Alas, this will have to be dogeared for another day.
 
 ### Importing the models into Streamlit
-I used AI to help outline the skeleton of the streamlit app. I implemented 
+I used AI to help outline the skeleton of the streamlit app and to assist with the code required to carry over the Neural Network from model1.py. That said, I implemented most other functions myself and did the plumbing to re-call functions used in other Python modules. 
 
 ## Meta Prompting
 Since I also made OpenAI API calls within my processing scripts I metaprompted to create a very clear prompt that I could pass into the OpenAI API for the best results. 

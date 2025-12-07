@@ -82,8 +82,8 @@ Users will need an [OpenAI](https://openai.com/api/pricing/) & [Firecrawl API](h
 │   │   │   └── prompt1.py               # Prompt used to extract sneaker brand, article type and sneaker price from article
 │   │   │── model1.py                    # Python program using PyTorch to create and run a Neural Network using the engineered features
 │   │   └── EDA.ipynb                    # Jupyter notebook dedicated to Exploratory Data Analysis
-│   ├── scraping/
-│   │   └── firecrawl_client.py   # Wrapper around Firecrawl API
+│   └──scraping/
+│       └── firecrawl_client.py   # Wrapper around Firecrawl API
 │
 ├── app.py                        # Streamlit App exposing underlying Neural Network
 ├── data_dictionary.md            # Dictionary explaining the column headers of the base CSV
